@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LadderAI - Your Career Path, Visualized</title>
+    
+    <!-- Fonts from all files -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+    
+    <!-- External Scripts from all files -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <style>
+        /* --- Global Styles --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000; /* Consistent background */
+            font-family: 'Exo 2', sans-serif; /* A good default from the files */
+            scroll-behavior: smooth;
+        }
+
+        /* --- Section Wrapper Styles --- */
+        .full-page-section {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden; /* Hide overflow within sections, but allow body to scroll */
+        }
+
+        /* --- STYLES from ladderaiHero.html --- */
+        #hero-section { 
+            background-color: #0d1117; 
+            font-family: 'Inter', sans-serif;
+        }
+
+        #hero-section #hero-canvas {
+            position: absolute; /* MODIFIED: from fixed to absolute for scrolling */
+            top: 0;
+            left: 0;
+            width: 100%; /* MODIFIED: from 100vw to 100% */
+            height: 100%; /* MODIFIED: from 100vh to 100% */
+            z-index: 10; 
+        }
+
+        #hero-section #hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; 
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            padding-bottom: 4rem;
+            pointer-events: none; 
+        }
+
+        @media (min-width: 640px) {
+            #hero-section #hero-overlay { padding-bottom: 6rem; }
+        }
+        @media (min-width: 1024px) {
+            #hero-section #hero-overlay { padding-bottom: 8rem; }
+        }
+        
+        #hero-section #hero-overlay > * {
+            pointer-events: auto;
+        }
+
+        #hero-section canvas { display: block; }
+
+        #hero-section .neon-green-text {
+            color: #00ff7f;
+            text-shadow: 0 0 5px #00ff7f, 0 0 10px rgba(0, 255, 127, 0.5); 
+        }
+        
+        #hero-section .typing-font {
+            font-family: 'Major Mono Display', monospace;
+        }
+
+        #hero-section .neon-button {
+            background-color: #5fb8a7; 
+            color: #0d1117;
+            border: none; 
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(95, 184, 167, 0.4); 
+        }
+        
+        #hero-section .neon-button:hover {
+            background-color: #79d8c4;
+            color: #0d1117;
+            box-shadow: 0 4px 20px rgba(95, 184, 167, 0.6); 
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse-neon {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(95, 184, 167, 0.7); }
+            50% { box-shadow: 0 0 0 15px rgba(95, 184, 167, 0); }
+        }
+
+        #hero-section .button-animated {
+            animation: pulse-neon 2.5s infinite;
+            opacity: 0; 
+            transform: translateY(50px); 
+            transition: opacity 1s ease-in, transform 1s ease-in;
+        }
+        
+        #hero-section .button-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* --- STYLES from LadderFeatures.html --- */
+        #features-section {
+            background-color: #111111;
+        }
+        #features-section canvas { 
+            display: block; 
+        }
+
+        /* --- STYLES from LadderVideos.html --- */
+        #videos-section {
+            background-color: #000000;
+            color: #FFFFFF;
+            padding: 4rem 2rem;
+            text-align: center;
+            /* Allow vertical scrolling if content overflows on small screens */
+            overflow-y: auto; 
+            height: auto; /* Let content define height */
+            min-height: 100vh; /* Ensure it takes at least full screen height */
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes standUp {
+            from { opacity: 0; transform: perspective(800px) rotateX(15deg) scale(0.98); }
+            to { opacity: 1; transform: perspective(800px) rotateX(0deg) scale(1); }
+        }
+
+        @keyframes underline {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        #videos-section .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+            color: #fff;
+            opacity: 0;
+        }
+
+        #videos-section .section-title::after {
+            content: '';
+            position: absolute;
+            height: 3px;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, #4B0082, #001F3F, #FF1493);
+            width: 0;
+        }
+
+        #videos-section.in-view .section-title {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        #videos-section.in-view .section-title::after {
+            animation: underline 0.8s ease-in-out 0.5s forwards;
+        }
+
+        #videos-section .video-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        #videos-section .video-wrapper {
+            flex: 1 1 45%;
+            max-width: 560px;
+            min-width: 300px;
+            opacity: 0;
+        }
+
+        #videos-section.in-view .video-wrapper {
+            animation: standUp 0.9s ease-out forwards;
+        }
+
+        #videos-section.in-view .video-wrapper:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        #videos-section .video-wrapper h3 {
+            font-family: 'Audiowide', cursive;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f0f0f0;
+        }
+
+        #videos-section .video-embed {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px 5px rgba(75, 0, 130, 0.3), 0 0 25px 10px rgba(0, 31, 63, 0.2), 0 0 35px 15px rgba(255, 20, 147, 0.1);
+        }
+
+        #videos-section .video-embed::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px;
+            right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #4B0082, #001F3F, #FF1493);
+            z-index: -1;
+            filter: blur(5px);
+            border-radius: 10px;
+        }
+
+        #videos-section .video-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            #videos-section { padding: 2rem 1rem; }
+            #videos-section .section-title { font-size: 2rem; }
+            #videos-section .video-container { flex-direction: column; align-items: center; }
+            #videos-section .video-wrapper { flex: 1 1 100%; width: 100%; }
+        }
+
+        /* --- STYLES from ladderwaitlist.html --- */
+        #waitlist-section {
+            --background-color: #000000;
+            --accent-purple: #4B0082;
+            --accent-blue: #001F3F;
+            --accent-pink-glow: #FF1493;
+            --text-color: #FFFFFF;
+            --font-main: 'Orbitron', sans-serif;
+            --font-body: 'Exo 2', sans-serif;
+            
+            color: var(--text-color);
+            font-family: var(--font-body);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #waitlist-section #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #waitlist-section canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #waitlist-section #content-container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 2.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 0 35px var(--accent-purple);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        #waitlist-section h1 {
+            font-family: var(--font-main);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text-color);
+            text-shadow: 0 0 10px var(--accent-purple), 0 0 25px var(--accent-purple);
+        }
+
+        #waitlist-section p.tagline {
+            font-size: 1.25rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: -1rem;
+        }
+
+        #waitlist-section #waitlist-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #waitlist-section #email-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 31, 63, 0.8);
+            border: 2px solid var(--accent-blue);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        #waitlist-section #email-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+
+        #waitlist-section #email-input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px var(--accent-purple);
+        }
+
+        #waitlist-section #submit-btn {
+            width: 100%;
+            padding: 1rem;
+            font-family: var(--font-main);
+            font-size: 1.1rem;
+            color: var(--text-color);
+            background-color: transparent;
+            border: 2px solid var(--accent-purple);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        #waitlist-section #submit-btn:hover {
+            background-color: var(--accent-purple);
+            box-shadow: 0 0 20px var(--accent-purple);
+        }
+        
+        #waitlist-section #success-message {
+            position: absolute;
+            z-index: 2;
+            font-family: var(--font-body);
+            color: var(--accent-pink-glow);
+            text-shadow: 0 0 8px var(--accent-pink-glow);
+            font-weight: 500;
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+
+        #waitlist-section #success-message.visible { opacity: 1; }
+
+        #waitlist-section #success-message span {
+            display: inline-block;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #waitlist-section #success-message span.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- SECTION 1: HERO -->
+    <section id="hero-section" class="full-page-section">
+        <div id="hero-overlay">
+            <p id="typing-text" class="text-lg sm:text-xl md:text-2xl neon-green-text max-w-xl mb-10 typing-font"></p>
+            <button id="cta-button" class="px-8 py-3 font-bold rounded-full shadow-xl button-animated neon-button">
+                Waitlist Now
+            </button>
+        </div>
+        <!-- The hero canvas will be appended here by its script -->
+    </section>
+
+    <!-- SECTION 2: FEATURES -->
+    <section id="features-section" class="full-page-section">
+        <!-- The features canvas will be appended here by its script -->
+    </section>
+
+    <!-- SECTION 3: VIDEOS -->
+    <section id="videos-section" class="vision-section">
+        <h2 class="section-title">Our Vision in Motion</h2>
+        <div class="video-container">
+            <div class="video-wrapper">
+                <h3>Pitch Video</h3>
+                <div class="video-embed">
+                    <iframe src="https://www.youtube.com/embed/1dHwX4i5qm0" title="Pitch Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="video-wrapper">
+                <h3>Prototype Demo</h3>
+                <div class="video-embed">
+                    <iframe src="https://www.youtube.com/embed/bWQkW75gqgE" title="Prototype Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: WAITLIST -->
+    <section id="waitlist-section" class="full-page-section">
+        <div id="canvas-container">
+            <canvas id="network-canvas"></canvas>
+        </div>
+        <div id="content-container">
+            <h1>Waitlist now</h1>
+            <p class="tagline">Your journey starts here</p>
+            <form id="waitlist-form">
+                <input type="email" id="email-input" placeholder="Enter your email →" required>
+                <button type="submit" id="submit-btn">Activate Node</button>
+            </form>
+        </div>
+        <div id="success-message"></div>
+    </section>
+
+
+    <!-- JAVASCRIPT FOR HERO SECTION -->
+    <script>
+    (function() {
+        // --- Global Variables ---
+        let scene, camera, renderer, group, clock; 
+        let textLoaded = false;
+        let backgroundKnot; 
+        
+        const LOAD_IN_DURATION = 3.0;
+        const PATH_LOAD_DURATION = 2.0;
+        let loadInTime = 0;
+        let pathLoadTime = 0;
+
+        const FONT_URL = 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json';
+        const TEXT_TO_DISPLAY = "LADDERAI";
+        const TOTAL_LETTERS = TEXT_TO_DISPLAY.length;
+        
+        const LETTER_SPACING = 20;
+        const AI_TIGHT_SPACING = 12;
+        const SPACING_REDUCTION = LETTER_SPACING - AI_TIGHT_SPACING;
+        
+        const JOB_TITLES = [
+            "Software Engineer I", "Data Analyst", "Marketing Specialist", "UX Designer", "Sales Associate",
+            "Jr. Data Scientist", "Full-Stack Developer", "Cloud Engineer", "Product Manager I", "Financial Analyst",
+            "Senior Software Engineer", "Machine Learning Engineer", "DevOps Specialist", "Lead UX/UI Designer", "Project Manager",
+            "Principal Architect", "AI Research Scientist", "Director of Engineering", "VP of Product", "Chief Data Officer",
+            "CTO", "CEO", "Consultant", "Venture Capitalist", "Technical Writer", "Operations Manager", "Security Specialist",
+            "Biotech Analyst", "E-commerce Manager", "Game Developer", "Blockchain Engineer", "Cybersecurity Expert",
+            "Site Reliability Engineer", "AI Ethicist", "Quantum Computing Researcher", "Digital Marketing Director",
+            "System Administrator", "Scrum Master", "Business Intelligence Dev", "Compliance Officer", "Network Engineer"
+        ];
+        const PATH_SHAPE_COUNT = 30; 
+        const particles = []; 
+        let pathCurve;
+        
+        let raycaster, mouse;
+        let letters = []; 
+        let hoveredMesh = null; 
+
+        function createParticleShape(jobName) {
+            const color = new THREE.Color(Math.random() * 0xffffff);
+            const colorHex = '#' + color.getHexString();
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgba(13, 17, 23, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'Bold 18px Inter';
+            ctx.fillStyle = colorHex;
+            ctx.textAlign = 'center';
+            ctx.fillText(jobName, canvas.width / 2, canvas.height / 2 + 6);
+            const texture = new THREE.CanvasTexture(canvas);
+            const textPlaneGeometry = new THREE.PlaneGeometry(8, 4);
+            const textPlaneMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.0, side: THREE.DoubleSide });
+            const textPlane = new THREE.Mesh(textPlaneGeometry, textPlaneMaterial);
+            textPlane.position.y = 8;
+            textPlane.rotation.x = -Math.PI / 2;
+            textPlane.userData.materials = [textPlane.material]; 
+            return textPlane;
+        }
+
+        function init() {
+            const container = document.getElementById('hero-section');
+            if (!container) return;
+            
+            clock = new THREE.Clock();
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x0d1117, 1, 300); 
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 5, 80); 
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setClearColor(0x0d1117);
+            renderer.domElement.id = 'hero-canvas';
+            container.appendChild(renderer.domElement); // MODIFIED: Append to section
+
+            const ambientLight = new THREE.AmbientLight(0x404040, 5); 
+            scene.add(ambientLight);
+            const directionalLight1 = new THREE.DirectionalLight(0x00ffff, 4); 
+            directionalLight1.position.set(50, 100, 50);
+            scene.add(directionalLight1);
+            const directionalLight2 = new THREE.DirectionalLight(0xaa00ff, 3); 
+            directionalLight2.position.set(-50, -100, -50);
+            scene.add(directionalLight2);
+            
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            group = new THREE.Group();
+            scene.add(group);
+            
+            loadTextAndPath();
+            
+            window.addEventListener('resize', onWindowResize, false);
+            renderer.domElement.addEventListener('mousemove', onMouseMove, false);
+            
+            animate();
+        }
+
+        function onMouseMove(event) {
+            const containerBounds = document.getElementById('hero-section').getBoundingClientRect();
+            mouse.x = ((event.clientX - containerBounds.left) / containerBounds.width) * 2 - 1;
+            mouse.y = -((event.clientY - containerBounds.top) / containerBounds.height) * 2 + 1;
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('hero-section');
+            if (!container) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function createCareerPath() {
+            const points = [];
+            const totalLength = (TEXT_TO_DISPLAY.length - 1) * LETTER_SPACING - SPACING_REDUCTION;
+            const startX = -totalLength / 2;
+            for (let i = 0; i <= 100; i++) {
+                const t = i / 100;
+                const x = startX + t * totalLength;
+                const y = 0 + Math.sin(t * Math.PI * 4) * 2;
+                const z = 5 + Math.cos(t * Math.PI * 2) * 2; 
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            pathCurve = new THREE.CatmullRomCurve3(points);
+            const tubeGeometry = new THREE.TubeGeometry(pathCurve, 200, 0.5, 8, false);
+            const tubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff7f, transparent: true, opacity: 0.0 }); 
+            const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            tubeMesh.name = "PathTube";
+            group.add(tubeMesh);
+            for (let i = 0; i < PATH_SHAPE_COUNT; i++) {
+                const randomIndex = Math.floor(Math.random() * JOB_TITLES.length);
+                const jobTitle = JOB_TITLES[randomIndex];
+                const shape = createParticleShape(jobTitle);
+                shape.userData.offset = Math.random(); 
+                shape.userData.speed = THREE.MathUtils.randFloat(0.0005, 0.0015); 
+                particles.push(shape);
+                group.add(shape);
+            }
+        }
+
+        function createBackgroundTorusKnot() {
+            const geometry = new THREE.TorusKnotGeometry(50, 10, 100, 16); 
+            const wireframe = new THREE.WireframeGeometry(geometry);
+            const material = new THREE.LineBasicMaterial({ color: 0x8a2be2, linewidth: 1, transparent: true, opacity: 0.0 });
+            backgroundKnot = new THREE.LineSegments(wireframe, material);
+            backgroundKnot.position.set(0, 0, -100); 
+            backgroundKnot.rotation.set(Math.PI / 12, 0, Math.PI / 16);
+            scene.add(backgroundKnot);
+        }
+        
+        function applyVertexColors(geometry) {
+            geometry.computeBoundingBox();
+            const boundingBox = geometry.boundingBox;
+            const colorSide = new THREE.Color(0xddeeff); 
+            const colorBack = new THREE.Color(0xaa99ff); 
+            const positionAttribute = geometry.getAttribute('position');
+            const colors = [];
+            const depth = boundingBox.max.z - boundingBox.min.z;
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const z = positionAttribute.getZ(i);
+                const normalizedZ = (z - boundingBox.min.z) / depth;
+                const color = colorBack.clone().lerp(colorSide, normalizedZ);
+                colors.push(color.r, color.g, color.b);
+            }
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        }
+
+        function loadTextAndPath() {
+            const loader = new THREE.FontLoader();
+            loader.load(FONT_URL, function (font) {
+                textLoaded = true;
+                createCareerPath(); 
+                createBackgroundTorusKnot(); 
+                const solidMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, vertexColors: true });
+                const totalTextWidth = (TEXT_TO_DISPLAY.length - 1) * LETTER_SPACING - SPACING_REDUCTION; 
+                let currentX = -totalTextWidth / 2;
+                const letterSize = 15;
+                for (let i = 0; i < TOTAL_LETTERS; i++) {
+                    const char = TEXT_TO_DISPLAY[i];
+                    const geometry = new THREE.TextGeometry(char, { font: font, size: letterSize, height: 5, curveSegments: 12, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.5, bevelOffset: 0, bevelSegments: 4 });
+                    geometry.center();
+                    applyVertexColors(geometry);
+                    const solidMesh = new THREE.Mesh(geometry, solidMaterial);
+                    const finalY = 0;
+                    const finalPosition = new THREE.Vector3(currentX, finalY, 0);
+                    solidMesh.userData.finalPosition = finalPosition;
+                    solidMesh.userData.targetY = finalY;
+                    solidMesh.position.set( THREE.MathUtils.randFloat(-200, 200), THREE.MathUtils.randFloat(150, 300), THREE.MathUtils.randFloat(-100, 100) );
+                    solidMesh.userData.initialPosition = solidMesh.position.clone();
+                    solidMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI); 
+                    group.add(solidMesh);
+                    letters.push(solidMesh);
+                    const platformGeometry = new THREE.PlaneGeometry(25, 1);
+                    const platformMaterial = new THREE.MeshLambertMaterial({ color: 0x1f74ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+                    const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+                    platform.rotation.x = -Math.PI / 2;
+                    const platformFinalY = -5;
+                    platform.userData.finalPosition = new THREE.Vector3(currentX, platformFinalY, 0);
+                    platform.userData.targetY = platformFinalY; 
+                    platform.position.copy(solidMesh.position);
+                    platform.userData.initialPosition = platform.position.clone();
+                    group.add(platform);
+                    let spacing = (i === 6) ? AI_TIGHT_SPACING : LETTER_SPACING;
+                    currentX += spacing;
+                }
+            }, undefined, (error) => {
+                console.error('An error happened while loading the font:', error);
+                textLoaded = false;
+                createCareerPath();
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (textLoaded) {
+                const tube = group.getObjectByName("PathTube");
+                if (loadInTime < LOAD_IN_DURATION) {
+                    loadInTime += delta;
+                    const t = Math.min(loadInTime / LOAD_IN_DURATION, 1); 
+                    const smoothT = 1 - Math.pow(1 - t, 3); 
+                    group.children.forEach(mesh => {
+                        if (mesh.userData.initialPosition && mesh.userData.finalPosition) {
+                            let targetY = mesh.userData.targetY !== undefined ? mesh.userData.targetY : mesh.userData.finalPosition.y;
+                            mesh.position.lerpVectors(mesh.userData.initialPosition, new THREE.Vector3(mesh.userData.finalPosition.x, targetY, mesh.userData.finalPosition.z), smoothT);
+                            if (t < 1) { 
+                                mesh.rotation.x = THREE.MathUtils.lerp(mesh.rotation.x, 0, smoothT * 0.1);
+                                mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, 0, smoothT * 0.1);
+                                mesh.rotation.z = THREE.MathUtils.lerp(mesh.rotation.z, 0, smoothT * 0.1);
+                            }
+                        }
+                    });
+                } 
+                if (loadInTime >= LOAD_IN_DURATION) {
+                    if (pathLoadTime < PATH_LOAD_DURATION) {
+                        pathLoadTime += delta;
+                        const pathT = Math.min(pathLoadTime / PATH_LOAD_DURATION, 1);
+                        if (tube) tube.material.opacity = THREE.MathUtils.lerp(0.0, 0.3, pathT);
+                        particles.forEach(p => p.userData.materials.forEach(m => m.opacity = THREE.MathUtils.lerp(0.0, 1.0, pathT)));
+                        if (backgroundKnot) backgroundKnot.material.opacity = THREE.MathUtils.lerp(0.0, 0.45, pathT); 
+                    }
+                    if (backgroundKnot) {
+                        backgroundKnot.rotation.y += delta * 0.05;
+                        backgroundKnot.rotation.z += delta * 0.02;
+                    }
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(letters); 
+                    let newHovered = intersects.length > 0 ? intersects[0].object : null;
+                    if (newHovered !== hoveredMesh) {
+                        if (hoveredMesh) hoveredMesh.userData.targetY = hoveredMesh.userData.finalPosition.y; 
+                        if (newHovered) newHovered.userData.targetY = newHovered.userData.finalPosition.y + 3;
+                        hoveredMesh = newHovered;
+                    }
+                    group.children.forEach(mesh => {
+                        if (mesh.userData.targetY !== undefined) {
+                             mesh.position.y = THREE.MathUtils.lerp(mesh.position.y, mesh.userData.targetY, 0.1);
+                        }
+                    });
+                }
+                if (loadInTime >= LOAD_IN_DURATION) {
+                    particles.forEach(p => {
+                        if (tube && tube.material.opacity > 0) {
+                            p.userData.offset = (p.userData.offset + p.userData.speed) % 1;
+                            const position = pathCurve.getPointAt(p.userData.offset);
+                            p.position.copy(position);
+                            p.rotation.x += p.userData.speed * 5; 
+                            p.rotation.y += p.userData.speed * 10;
+                            p.rotation.z += p.userData.speed * 5;
+                        }
+                    });
+                }
+            }
+            if (renderer) renderer.render(scene, camera);
+        }
+
+        function typeWriter(elementId, text, speed) {
+            const element = document.getElementById(elementId);
+            const button = document.getElementById('cta-button');
+            if (!element) return;
+            element.innerHTML = ''; 
+            const N = text.length;
+            const mid = Math.floor(N / 2);
+            let leftIndex = mid - 1; 
+            let rightIndex = mid;
+            const currentText = new Array(N).fill(''); 
+            const totalSteps = Math.ceil(N / 2); 
+            let steps = 0;
+            function type() {
+                if (steps < totalSteps) {
+                    if (rightIndex < N) currentText[rightIndex++] = text.charAt(rightIndex-1);
+                    if (leftIndex >= 0) currentText[leftIndex--] = text.charAt(leftIndex+1);
+                    element.innerHTML = currentText.join('');
+                    steps++;
+                    setTimeout(type, speed);
+                } else {
+                    if (button) button.classList.add('button-visible');
+                }
+            }
+            setTimeout(type, 500); 
+        }
+
+        // --- MODIFICATION: Waitlist button scroll functionality ---
+        function setupHeroButton() {
+            const ctaButton = document.getElementById('cta-button');
+            const waitlistSection = document.getElementById('waitlist-section');
+            if (ctaButton && waitlistSection) {
+                ctaButton.addEventListener('click', () => {
+                    waitlistSection.scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+        }
+
+        window.addEventListener('load', function () {
+            init();
+            setupHeroButton(); // Setup button functionality
+            setTimeout(() => {
+                const textToType = "Visualize Your Next Career Move";
+                const typingSpeed = 150;
+                typeWriter('typing-text', textToType, typingSpeed);
+            }, LOAD_IN_DURATION * 1000); 
+        });
+    })();
+    </script>
+    
+    <!-- JAVASCRIPT FOR FEATURES SECTION -->
+    <script>
+    (function() {
+        let scene, camera, renderer, ladder;
+        let featureGroups = [];
+        let connectorLines = []; 
+        let animationClock = new THREE.Clock(); 
+        let mouseX = 0, mouseY = 0; 
+        let targetX = 0, targetY = 0; 
+        const TILT_STRENGTH = 0.0004; 
+        const TILT_SMOOTHNESS = 0.1;
+        const LADDER_HEIGHT = 15;
+        const LADDER_WIDTH = 2;
+        const RUNG_COUNT = 6; 
+        const STILE_WIDTH = 0.15; 
+        const STILE_DEPTH = 0.15; 
+        const RUNG_DIAMETER = 0.1; 
+        const RUNG_DEPTH = 0.1;
+        const LADDER_COLOR = 0xADD8E6;
+        const STATIC_TILT_RADIANS = -15 * (Math.PI / 180); 
+        const FINAL_DISTANCE_X = 4.5;
+        const ENTRY_DURATION = 1.2;
+        const STAGGER_DELAY = 0.3;
+        const VIEW_SIZE = 18;
+        const TEXT_BOX_WIDTH = 4.8;
+        const TEXT_BOX_HEIGHT = 2.0;
+
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lineCount = 0;
+            for(let n = 0; n < words.length; n++) {
+                if (context.measureText(line + words[n] + ' ').width > maxWidth && n > 0) lineCount++;
+                line = (context.measureText(line + words[n] + ' ').width > maxWidth && n > 0) ? (words[n] + ' ') : (line + words[n] + ' ');
+            }
+            lineCount++;
+            let startY = y - (lineCount - 1) * lineHeight / 2;
+            line = '';
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                if (context.measureText(testLine).width > maxWidth && n > 0) {
+                    context.fillText(line.trim(), x, startY);
+                    line = words[n] + ' ';
+                    startY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line.trim(), x, startY);
+        }
+
+        function drawStyledBox(context, x, y, width, height, radius) {
+            context.fillStyle = 'rgba(250, 250, 250, 0.98)';
+            context.beginPath();
+            context.moveTo(x + radius, y);
+            context.lineTo(x + width - radius, y);
+            context.quadraticCurveTo(x + width, y, x + width, y + radius);
+            context.lineTo(x + width, y + height - radius);
+            context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            context.lineTo(x + radius, y + height);
+            context.quadraticCurveTo(x, y + height, x, y + height - radius);
+            context.lineTo(x, y + radius);
+            context.quadraticCurveTo(x, y, x + radius, y);
+            context.closePath();
+            context.fill();
+            const gradient = context.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#87CEEB'); 
+            gradient.addColorStop(1, '#FF00FF');
+            context.strokeStyle = gradient;
+            context.lineWidth = 40; 
+            context.stroke();
+        }
+
+        function init() {
+            const container = document.getElementById('features-section');
+            if (!container) return;
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111111);
+            const aspectRatio = container.clientWidth / container.clientHeight;
+            camera = new THREE.OrthographicCamera(
+                VIEW_SIZE * aspectRatio / -2, VIEW_SIZE * aspectRatio / 2,
+                VIEW_SIZE / 2, VIEW_SIZE / -2, 0.1, 1000
+            );
+            camera.position.set(15, 15, 15);
+            camera.lookAt(0, LADDER_HEIGHT / 2, 0); 
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement); // MODIFIED: Append to section
+            
+            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+            const mainGroup = new THREE.Group();
+            ladder = createLadder();
+            mainGroup.add(ladder);
+            createAllFeatures(mainGroup);
+            mainGroup.position.y = -1;
+            scene.add(mainGroup);
+            
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            window.addEventListener('resize', onWindowResize, false);
+            
+            animate();
+        }
+        
+        function createLadder() {
+            const ladderGroup = new THREE.Group();
+            const material = new THREE.MeshBasicMaterial({ color: LADDER_COLOR });
+            const stileGeometry = new THREE.BoxGeometry(STILE_WIDTH, LADDER_HEIGHT, STILE_DEPTH);
+            const stile1 = new THREE.Mesh(stileGeometry, material);
+            stile1.position.x = -LADDER_WIDTH / 2;
+            const stile2 = new THREE.Mesh(stileGeometry, material);
+            stile2.position.x = LADDER_WIDTH / 2;
+            ladderGroup.add(stile1, stile2);
+            ladderGroup.position.y = LADDER_HEIGHT / 2;
+            const rungGeometry = new THREE.BoxGeometry(LADDER_WIDTH, RUNG_DIAMETER, RUNG_DEPTH);
+            const rungSpacing = LADDER_HEIGHT / (RUNG_COUNT + 1);
+            const startY = -LADDER_HEIGHT / 2 + rungSpacing;
+            for (let i = 0; i < RUNG_COUNT; i++) {
+                const rung = new THREE.Mesh(rungGeometry, material);
+                rung.position.y = startY + i * rungSpacing;
+                ladderGroup.add(rung);
+            }
+            return ladderGroup;
+        }
+
+        function createAllFeatures(parent) {
+            const labelData = [
+                { text: "Tools For Every Ambition: From Student Admissions To Startup Creation", side: -1, rungIndex: 5 },
+                { text: "Automate Your Job Search And Follow-Ups", side: 1, rungIndex: 4 },
+                { text: "Ace The Interview With AI-Powered Resume And Cover Letter Builders", side: -1, rungIndex: 3 },
+                { text: "Track Your Growth And Stay Motivated", side: 1, rungIndex: 2 },
+                { text: "Build Your Custom Career Path", side: -1, rungIndex: 1 },
+                { text: "Unlock Your Potential With Skill Mapping", side: 1, rungIndex: 0 }
+            ];
+            const rungSpacing = LADDER_HEIGHT / (RUNG_COUNT + 1);
+            labelData.forEach((data, i) => {
+                const featureGroup = new THREE.Group();
+                const rungY = (data.rungIndex + 1) * rungSpacing;
+                const textCanvas = document.createElement('canvas');
+                const canvasWidth = 4096;
+                const canvasHeight = Math.round(canvasWidth * (TEXT_BOX_HEIGHT / TEXT_BOX_WIDTH));
+                textCanvas.width = canvasWidth; textCanvas.height = canvasHeight;
+                const textCtx = textCanvas.getContext('2d');
+                drawStyledBox(textCtx, 20, 20, canvasWidth - 40, canvasHeight - 40, 160);
+                const fontSize = 280; 
+                textCtx.font = `bold ${fontSize}px Arial`;
+                textCtx.fillStyle = '#000000';
+                textCtx.textAlign = 'center';
+                textCtx.textBaseline = 'middle';
+                wrapText(textCtx, data.text, canvasWidth / 2, canvasHeight / 2, canvasWidth * 0.85, fontSize * 1.2);
+                const textTexture = new THREE.CanvasTexture(textCanvas);
+                textTexture.magFilter = THREE.LinearFilter;
+                textTexture.minFilter = THREE.LinearFilter;
+                const textSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTexture, transparent: true }));
+                textSprite.scale.set(TEXT_BOX_WIDTH, TEXT_BOX_HEIGHT, 1);
+                featureGroup.add(textSprite);
+                featureGroup.position.set(data.side * LADDER_WIDTH / 2, rungY, 0);
+                featureGroup.userData = { side: data.side, targetX: data.side * FINAL_DISTANCE_X, entryDelay: i * STAGGER_DELAY, isEntering: true, entryStartTime: 0 };
+                featureGroup.scale.set(0, 0, 0);
+                featureGroups.push(featureGroup);
+                parent.add(featureGroup);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0xADD8E6, transparent: true });
+                const lineStart = new THREE.Vector3(data.side * LADDER_WIDTH / 2, rungY, 0.1);
+                const lineEnd = new THREE.Vector3(featureGroup.position.x, rungY, 0.1);
+                const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([lineStart, lineEnd]), lineMaterial);
+                connectorLines.push({ line: line, group: featureGroup, side: data.side });
+                parent.add(line);
+            });
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - (window.innerWidth / 2));
+            mouseY = (event.clientY - (window.innerHeight / 2));
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = animationClock.getElapsedTime();
+            if (ladder) {
+                targetX = mouseY * TILT_STRENGTH;
+                targetY = mouseX * TILT_STRENGTH;
+                const combinedTargetX = STATIC_TILT_RADIANS + targetX;
+                ladder.parent.rotation.x += (combinedTargetX - ladder.parent.rotation.x) * TILT_SMOOTHNESS;
+                ladder.parent.rotation.y += (targetY - ladder.parent.rotation.y) * TILT_SMOOTHNESS;
+            }
+            featureGroups.forEach((group) => {
+                const data = group.userData;
+                if (data.isEntering && elapsedTime > data.entryDelay) {
+                    if (data.entryStartTime === 0) data.entryStartTime = elapsedTime;
+                    let progress = Math.min((elapsedTime - data.entryStartTime) / ENTRY_DURATION, 1);
+                    progress = 1 - Math.pow(1 - progress, 3);
+                    group.scale.set(progress, progress, progress);
+                    const startX = data.side * LADDER_WIDTH / 2;
+                    group.position.x = startX + (data.targetX - startX) * progress;
+                    if (progress >= 1) data.isEntering = false;
+                }
+            });
+            connectorLines.forEach(item => {
+                const { line, group, side } = item;
+                const positions = line.geometry.attributes.position.array;
+                const halfWidth = (TEXT_BOX_WIDTH / 2) * group.scale.x;
+                positions[3] = group.position.x - (side * halfWidth);
+                positions[4] = group.position.y;
+                line.material.opacity = 0.4 + ((Math.sin(elapsedTime * 5) + 1) / 2) * 0.6;
+                line.geometry.attributes.position.needsUpdate = true;
+            });
+            if(renderer) renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('features-section');
+            if (!container) return;
+            const aspectRatio = container.clientWidth / container.clientHeight;
+            camera.left = VIEW_SIZE * aspectRatio / -2;
+            camera.right = VIEW_SIZE * aspectRatio / 2;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        // --- MODIFICATION: Use Intersection Observer to start animation on scroll ---
+        const featuresSection = document.getElementById('features-section');
+        if (featuresSection) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        init(); // Initialize the three.js animation
+                        observer.unobserve(entry.target); // Stop observing to prevent re-initialization
+                    }
+                });
+            }, { threshold: 0.1 }); // Trigger when 10% of the section is visible
+
+            observer.observe(featuresSection);
+        }
+    })();
+    </script>
+
+    <!-- JAVASCRIPT FOR VIDEOS SECTION -->
+    <script>
+    (function() {
+        const visionSection = document.querySelector('.vision-section');
+        if (!visionSection) return;
+
+        // Use Intersection Observer to trigger animation when the section scrolls into view
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        visionSection.classList.add('in-view');
+                    }, 100); // Small delay for smoother effect
+                    observer.unobserve(entry.target); // Stop observing once it's in view
+                }
+            });
+        }, { threshold: 0.1 }); // Trigger when 10% of the section is visible
+
+        observer.observe(visionSection);
+    })();
+    </script>
+
+    <!-- JAVASCRIPT FOR WAITLIST SECTION -->
+    <script>
+    (function() {
+        const canvas = document.getElementById('network-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const contentContainer = document.getElementById('content-container');
+        const waitlistForm = document.getElementById('waitlist-form');
+        const emailInput = document.getElementById('email-input');
+        const successMessageContainer = document.getElementById('success-message');
+
+        let nodes = [];
+        const particles = [];
+        let pulses = [];
+        let mouse = { x: null, y: null };
+        let networkIsLive = false;
+        
+        const colors = { purple: '#4B0082', blue: '#001F3F', pinkGlow: '#FF1493' };
+
+        function resizeCanvas() {
+            const container = document.getElementById('waitlist-section');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            initNodes(); 
+        }
+        
+        waitlistForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (emailInput.validity.valid && emailInput.value.length > 0) {
+                triggerNetworkActivation();
+            } else {
+                emailInput.focus();
+                emailInput.style.borderColor = colors.pinkGlow;
+                setTimeout(() => { emailInput.style.borderColor = colors.blue; }, 1500);
+            }
+        });
+        
+        class Node {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.radius = Math.random() * 4 + 4;
+                this.color = colors.blue;
+                this.glow = 0; this.isActive = false;
+            }
+            draw() {
+                const effectiveColor = this.isActive ? colors.purple : this.color;
+                if (this.glow > 0) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + this.glow * 10, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(75, 0, 130, ${this.glow * 0.4})`;
+                    ctx.shadowColor = colors.purple; ctx.shadowBlur = 15; ctx.fill(); ctx.shadowBlur = 0;
+                }
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = effectiveColor; ctx.fill();
+            }
+            update() {
+                if(mouse.x === null) { this.glow = Math.max(0, this.glow - 0.05); return; }
+                const dist = Math.hypot(this.x - mouse.x, this.y - mouse.y);
+                this.glow = dist < this.radius + 50 ? Math.min(1, this.glow + 0.05) : Math.max(0, this.glow - 0.05);
+            }
+        }
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5; this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = `rgba(0, 31, 63, ${Math.random() * 0.7 + 0.2})`;
+            }
+            update(){
+                this.x += this.speedX; this.y += this.speedY;
+                if(this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if(this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw(){
+                ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        
+        class Pulse {
+            constructor(startX, startY, endX, endY) {
+                this.startX = startX; this.startY = startY;
+                this.endX = endX; this.endY = endY;
+                this.progress = 0; this.speed = 0.025;
+            }
+            update() { this.progress += this.speed; return this.progress >= 1; }
+            draw() {
+                const currentX = this.startX + (this.endX - this.startX) * this.progress;
+                const currentY = this.startY + (this.endY - this.startY) * this.progress;
+                ctx.beginPath(); ctx.arc(currentX, currentY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = colors.pinkGlow; ctx.shadowColor = colors.pinkGlow; ctx.shadowBlur = 15; ctx.fill(); ctx.shadowBlur = 0;
+            }
+        }
+
+        function initNodes() {
+            nodes = []; particles.length = 0;
+            const nodeCount = Math.floor((canvas.width * canvas.height) / 20000);
+            for (let i = 0; i < nodeCount; i++) nodes.push(new Node(Math.random() * canvas.width, Math.random() * canvas.height));
+            const particleCount = 150;
+            for(let i = 0; i < particleCount; i++) particles.push(new Particle());
+        }
+
+        function connectNodes() {
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+                    if (dist < 250) {
+                        ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
+                        const opacity = 1 - (dist / 250);
+                        const color = nodes[i].isActive && nodes[j].isActive ? colors.purple : colors.blue;
+                        ctx.strokeStyle = `rgba(${hexToRgb(color)}, ${opacity * 0.8})`; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            connectNodes();
+            nodes.forEach(node => { node.update(); node.draw(); });
+            pulses.forEach((pulse, index) => { if (pulse.update()) pulses.splice(index, 1); else pulse.draw(); });
+            if(networkIsLive && Math.random() < 0.01 && nodes.length > 0) {
+                const activeNodes = nodes.filter(n => n.isActive);
+                if(activeNodes.length > 1) {
+                    const startNode = activeNodes[Math.floor(Math.random() * activeNodes.length)];
+                    const potentialNeighbors = nodes.filter(n => Math.hypot(startNode.x - n.x, startNode.y - n.y) < 250 && n !== startNode);
+                    if (potentialNeighbors.length > 0) {
+                        const endNode = potentialNeighbors[Math.floor(Math.random() * potentialNeighbors.length)];
+                        pulses.push(new Pulse(startNode.x, startNode.y, endNode.x, endNode.y));
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        
+        function triggerNetworkActivation() {
+            contentContainer.style.opacity = '0'; contentContainer.style.transform = 'scale(0.8)'; contentContainer.style.pointerEvents = 'none';
+            startTypingAnimation("Welcome aboard! Your email is now connected to the network.");
+            setTimeout(() => {
+                networkIsLive = true;
+                if (nodes.length === 0) return;
+                let centerNode = nodes.reduce((prev, curr) => (Math.hypot(curr.x - canvas.width / 2, curr.y - canvas.height / 2) < Math.hypot(prev.x - canvas.width / 2, prev.y - canvas.height / 2)) ? curr : prev);
+                activateNode(centerNode, 0);
+            }, 500);
+        }
+
+        function activateNode(node, depth) {
+            if (!node || node.isActive || depth > 4) return;
+            node.isActive = true;
+            const neighbors = nodes.filter(n => !n.isActive && Math.hypot(node.x - n.x, node.y - n.y) < 250);
+            neighbors.forEach((neighbor, i) => {
+                pulses.push(new Pulse(node.x, node.y, neighbor.x, neighbor.y));
+                setTimeout(() => activateNode(neighbor, depth + 1), 200 + i * 50);
+            });
+        }
+        
+        function startTypingAnimation(text) {
+            successMessageContainer.innerHTML = '';
+            const letters = text.split('').map(letter => {
+                const span = document.createElement('span');
+                span.textContent = letter === ' ' ? '\u00A0' : letter;
+                successMessageContainer.appendChild(span);
+                return span;
+            });
+            successMessageContainer.classList.add('visible');
+            const mid = Math.floor(letters.length / 2); let delay = 0;
+            for (let i = 0; i <= mid; i++) {
+                if (mid + i < letters.length) setTimeout(() => letters[mid + i].classList.add('visible'), delay);
+                if (mid - i >= 0) setTimeout(() => letters[mid - i].classList.add('visible'), delay);
+                delay += 40; 
+            }
+        }
+        
+        function hexToRgb(hex) {
+            const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            return `${r}, ${g}, ${b}`;
+        }
+        
+        function mouseMoveHandler(e) {
+            const containerBounds = document.getElementById('waitlist-section').getBoundingClientRect();
+            mouse.x = e.clientX - containerBounds.left;
+            mouse.y = e.clientY - containerBounds.top;
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('waitlist-section').addEventListener('mousemove', mouseMoveHandler);
+            document.getElementById('waitlist-section').addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animate();
+        });
+    })();
+    </script>
+
+</body>
+</html>
